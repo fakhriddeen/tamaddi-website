@@ -74,7 +74,7 @@ function route() {
 window.addEventListener('hashchange',()=>{page=0;render();});
 async function render(quiet=false) {
  if(!authorized)return;
- if(quiet && document.activeElement?.closest('form'))return;
+ if(quiet && (document.activeElement?.closest('form') || document.querySelector('#meal-form')))return;
  const id=++generation, routeState=route();
  $('#title').textContent=sections[routeState.section]||'Overview';
  $('#nav').querySelectorAll('a').forEach((a,i)=>{if(i===routeState.section)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});

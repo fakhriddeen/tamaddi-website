@@ -40,14 +40,14 @@ The admin frontend uses bundled Lucide icons. catalog-build.mjs derives a read-o
 
 Implemented destinations:
 - Users: search, date filters, sort, pagination, profile and synced-kitchen counts, link to user support.
-- Meals & Recipes: read-only app catalog, category/search filters, pagination and ingredient details.
+- Meals & Recipes: shared draft editor, image uploads, ingredient quantities, preparation steps and publish/unpublish controls (see shared publishing setup below).
 - Products & Ingredients: read-only recipe ingredient references and search/pagination.
 - AI & Usage: protected model/feature/day aggregates, provider token counts, failures and average latency.
 - Analytics: dated registration/support charts and current synced-account count.
 - Activity Log: protected support and platform admin events, filters and pagination.
 - Settings: current administrator identity, persistent auto-refresh preference, logout and non-secret configuration facts.
 
-Blocked capabilities are identified on the relevant page. There is no remote recipe/product catalog or publishing contract, so create/edit/delete/publish controls are not offered. The admin never modifies private kitchen snapshots as a substitute for catalog management. Active-user and meal-engagement metrics have no reliable event source. Provider pricing/billing is not configured, so cost numbers are not displayed.
+The shared recipe publishing implementation below supersedes the original read-only meal catalog. A separate shared product catalog is not provided. The admin never modifies private kitchen snapshots as a substitute for catalog management. Active-user and meal-engagement metrics have no reliable event source. Provider pricing/billing is not configured, so cost numbers are not displayed.
 
 The assistant Edge Function records usage after authenticated provider attempts using its server-only service-role environment variable. It records no prompts or kitchen contents. Historical usage cannot be reconstructed. Metering failure does not discard a completed assistant response.
 
@@ -61,3 +61,20 @@ All use disposable fixtures and roll back.
 - Static build, application TypeScript/lint and Deno assistant typecheck.
 
 Not yet verified: a newly built iOS client submitting version metadata, physical-device two-way messaging, provider usage capture from a new authenticated assistant call, and frontend deployment to Vercel. The database changes and assistant instrumentation are deployed; the admin visual update remains local.
+
+## Shared meal publishing (25 November 2026)
+
+Migration `202611250001_shared_meal_catalog.sql` adds private drafts, a separate published snapshot, revision checks, publication visibility and administrator audit events. Only the existing administrator membership can read drafts or mutate meals. Published recipe content is intentionally readable by guests and signed-in app users; it contains no account data. No new administrator is granted.
+
+In Meals & Recipes, use **Import missing bundled meals** once to create private drafts of the existing website catalog. It does not overwrite edits or automatically publish meals. Existing IDs remain unchanged. Imported photos use the current website origin, which must be a stable HTTPS production URL. Uploaded photos instead use the public `meal-photos` bucket; administrators alone can insert JPEG/PNG/WebP up to 5 MB. Immutable filenames prevent cache conflicts. Client overwrite/delete is deliberately unavailable to protect published references.
+
+Use **New meal** or **Edit meal**, enter the name, description, timing, servings, image, categories, ingredients/quantities and preparation steps. **Save draft** is private. **Publish meal** atomically replaces the public version. **Unpublish** removes discovery visibility while preserving the last published data for saved plans, favourites and history. Conflicting revisions require a reload before saving. There is no destructive recipe deletion.
+
+The updated app synchronizes on launch, foreground and every 60 seconds while active. It persists the last published catalog locally and retains bundled meals offline. Remote meals use HTTPS images with the existing image cache. Old app binaries keep their bundled catalog: ship the app update before expecting live meal changes on users' devices. Personal recipe overrides are retained.
+
+Validation:
+- `node scripts/test-meal-catalog.cjs` (from the mobile repository): cache, merge, unpublishing, stable IDs, invalid responses and deduplicated refreshes.
+- `scripts/test-meal-catalog.sql`: rollback-only draft/publish/conflict/unpublish, ordinary-user and anonymous permissions, and storage RLS checks.
+- Production website build and application lint/typecheck.
+
+Deployment status: the catalog migration was applied to the existing Tamaddi Supabase project using its authorized CLI session. This database has no `supabase_migrations.schema_migrations` ledger, so the SQL was executed transactionally through `supabase db query --remote --file ...`, following the existing setup; do not reapply it unchanged. Website/editor and mobile synchronization source changes still require their respective releases. Browser acceptance used isolated fixture data; a physical-device publish/sync acceptance test remains necessary after the updated app is installed.

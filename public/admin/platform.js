@@ -38,16 +38,18 @@ async function renderPlatform(state,id) {
    $('#content').innerHTML=platformForm(`<label>Sort<select name="sort">${options({newest:'Newest accounts',oldest:'Oldest accounts'},platformFilters.sort)}</select></label>`)+`<div class="table-wrap"><table><thead><tr><th>Account</th><th>Joined</th><th>Last sign-in</th><th>Support</th><th>Kitchen</th></tr></thead><tbody>${data.rows.map(u=>`<tr><td><a href="#2/${u.id}">${safe(u.name||u.email||'Account')}</a><small>${safe(u.email)}</small></td><td>${date(u.created_at)}</td><td>${date(u.last_sign_in_at)}</td><td>${u.support_requests}</td><td>${u.has_synced_kitchen?'Synced':'Not synced'}</td></tr>`).join('')||'<tr><td colspan="5">No matching accounts.</td></tr>'}</tbody></table></div>`+pager(data.count);
    wirePlatformFilters(data.count);
   }
- } else if(section===3||section===4) {
-  const response=await fetch('/admin/catalog.json');if(!response.ok)throw Error('Could not load the app catalog.');
-  const catalog=await response.json();if(!current())return;
+ } else if(section===3) {
+  await renderMealManager(current);
+ } else if(section===4) {
+  const rows=await rpc('admin_meal_catalog');if(!current())return;
+  const catalog={recipes:rows.map(row=>row.draft)};
   const query=(platformFilters.search||'').toLowerCase();
   const recipes=catalog.recipes.filter(r=>(r.title+' '+r.keyIngredients.join(' ')).toLowerCase().includes(query)&&(!platformFilters.category||r.tags.includes(platformFilters.category)));
   const tags=Object.fromEntries([...new Set(catalog.recipes.flatMap(r=>r.tags))].sort().map(t=>[t,t]));
   const ingredientMap=new Map();
   catalog.recipes.forEach(r=>r.keyIngredients.forEach(name=>{if(!ingredientMap.has(name))ingredientMap.set(name,[]);ingredientMap.get(name).push(r.title);}));
   const ingredients=[...ingredientMap].filter(([name])=>name.toLowerCase().includes(query)).sort(([a],[b])=>a.localeCompare(b));
-  $('#content').innerHTML=unavailable(section===3?'Recipes and preparation content are shipped inside the iOS application. This view reads that exact catalog. Publishing, editing and deletion require a shared catalog and an app release integration, which do not exist yet.':'These are ingredients referenced by the app’s recipe catalog. User inventory is private account data, not a shared product catalog. Shared product editing and image publishing are unavailable in the current architecture.')+
+  $('#content').innerHTML=unavailable('Ingredients referenced by shared meal drafts. Edit a meal to change its ingredients; personal kitchen inventory stays private.')+
    `<form id="platform-filters" class="filters">${field('search','Search catalog','search',platformFilters.search||'')}${section===3?`<label>Category<select name="category">${options({'':'All categories',...tags},platformFilters.category)}</select></label>`:''}<button>Search</button></form>`+
    (section===3?`<div class="catalog-grid">${recipes.slice(page*24,(page+1)*24).map(r=>`<details class="panel recipe-card"><summary><img src="${safe(r.image)}" alt="" loading="lazy"><h2>${safe(r.title)}</h2><p>${safe(r.time)} · ${safe(r.difficulty)}</p><span class="badge">${r.browsable?'In app browse catalog':'Retained for saved meals'}</span></summary><p>${safe(r.subtitle)}</p><h3>Ingredients</h3>${r.ingredientBaseServings?'<p>Quantities shown for '+safe(r.ingredientBaseServings)+' serving(s).</p>':''}<ul>${r.keyIngredients.map(name=>`<li>${safe(name)}${r.ingredientAmounts?.[name]?.quantity!=null?' · '+safe(r.ingredientAmounts[name].quantity)+' '+safe(r.ingredientAmounts[name].unit):''}</li>`).join('')}</ul><p>${safe(r.servings)}</p>${r.recipeSources?.length?'<h3>Recipe sources</h3>'+r.recipeSources.map(url=>'<p><a href="'+safe(url)+'" target="_blank" rel="noopener noreferrer">'+safe(url)+'</a></p>').join(''):''}</details>`).join('')||'<p>No matching meals.</p>'}</div>`:
     `<div class="table-wrap"><table><thead><tr><th>Ingredient</th><th>Referenced in</th></tr></thead><tbody>${ingredients.slice(page*24,(page+1)*24).map(([name,meals])=>`<tr><td>${safe(name)}</td><td style="white-space:normal">${meals.map(title=>'<button type="button" class="recipe-reference" data-recipe-name="'+safe(title)+'">'+safe(title)+'</button>').join(' ')}</td></tr>`).join('')||'<tr><td>No matching ingredients.</td></tr>'}</tbody></table></div>`);

@@ -13,7 +13,7 @@ function refineWorkspace() {
  const descriptions={
   1:['Customer conversations','Manage requests and keep every customer conversation in context.'],
   2:['People using Tamaddi','Find an account and review its support history and synchronized state.'],
-  3:['The Tamaddi recipe collection','Explore the dishes and ingredients shipped with the app.'],
+  3:['The Tamaddi recipe collection','Create meals, review drafts and publish updates to the app.'],
   4:['Ingredients, connected','Explore the ingredients behind the collection and the recipes that use them.'],
   5:['Assistant performance','Monitor recorded requests, reliability, response time and provider-reported usage.'],
   6:['Growth and support','Understand registrations and support demand over a selected period.'],
