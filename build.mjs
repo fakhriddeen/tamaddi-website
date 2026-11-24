@@ -1,3 +1,5 @@
+import { buildCatalog } from './catalog-build.mjs';
+import { fileURLToPath } from 'node:url';
 
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 
@@ -46,3 +48,5 @@ if (adminKey && !adminKey.startsWith('sb_publishable_')) {
 await mkdir(source('./dist/admin/'), { recursive: true });
 await writeFile(source('./dist/admin/config.js'),
   'window.TAMADDI_ADMIN = ' + JSON.stringify({ url: adminUrl, key: adminKey }) + ';\n');
+
+await buildCatalog(fileURLToPath(new URL('.', import.meta.url)));

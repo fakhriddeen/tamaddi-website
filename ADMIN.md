@@ -31,3 +31,33 @@ Run the rollback-only SQL suites against the migrated database:
 - scripts/test-support-admin.sql
 
 Also exercise the iOS-to-dashboard acceptance flow using a dedicated test account, including private screenshot signing and notification navigation. These live tests require the configured Supabase project and an administrator account. No push notification service is added.
+
+## Platform expansion (24 November 2026)
+
+Migrations 008–012 add submission-time app version/build/platform, protected user directory and account summaries, date-filtered analytics, administrator preferences, platform audit events and AI usage reporting. Migration 009 restores owner-checked customer follow-ups after migration 007 disabled them. The inbox and search use the app's actual display_name metadata, with full_name/name/email fallbacks. Historical report versions remain null.
+
+The admin frontend uses bundled Lucide icons. catalog-build.mjs derives a read-only recipe and ingredient snapshot from the app's source catalog at build time, including the app's real recipe images. The build now requires the repository's existing TypeScript development dependency.
+
+Implemented destinations:
+- Users: search, date filters, sort, pagination, profile and synced-kitchen counts, link to user support.
+- Meals & Recipes: read-only app catalog, category/search filters, pagination and ingredient details.
+- Products & Ingredients: read-only recipe ingredient references and search/pagination.
+- AI & Usage: protected model/feature/day aggregates, provider token counts, failures and average latency.
+- Analytics: dated registration/support charts and current synced-account count.
+- Activity Log: protected support and platform admin events, filters and pagination.
+- Settings: current administrator identity, persistent auto-refresh preference, logout and non-secret configuration facts.
+
+Blocked capabilities are identified on the relevant page. There is no remote recipe/product catalog or publishing contract, so create/edit/delete/publish controls are not offered. The admin never modifies private kitchen snapshots as a substitute for catalog management. Active-user and meal-engagement metrics have no reliable event source. Provider pricing/billing is not configured, so cost numbers are not displayed.
+
+The assistant Edge Function records usage after authenticated provider attempts using its server-only service-role environment variable. It records no prompts or kitchen contents. Historical usage cannot be reconstructed. Metering failure does not discard a completed assistant response.
+
+Validation performed against the existing project:
+- scripts/test-support.sql
+- scripts/test-support-admin.sql
+- scripts/test-admin-platform.sql
+All use disposable fixtures and roll back.
+- Authenticated browser navigation for all nine sections, user search empty state, recipe pagination, preference persistence, existing conversation loading, internal-note mode and private image preview.
+- Overview/support layouts at 1440px, 820px and 390px; mobile chart overflow corrected.
+- Static build, application TypeScript/lint and Deno assistant typecheck.
+
+Not yet verified: a newly built iOS client submitting version metadata, physical-device two-way messaging, provider usage capture from a new authenticated assistant call, and frontend deployment to Vercel. The database changes and assistant instrumentation are deployed; the admin visual update remains local.
