@@ -1,0 +1,16 @@
+{
+  "name": "tamaddi-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "sync:catalog": "node sync-catalog.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "typescript": "6.0.3"
+  }
+}

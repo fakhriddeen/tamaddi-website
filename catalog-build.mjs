@@ -33,7 +33,7 @@ export async function buildCatalog(root) {
     cache.set(path, module.exports);
     return module.exports;
   }
-  const catalog = await load(resolve(root, '../src/data/recipes.ts'));
+  const catalog = await load(resolve(root, 'catalog-source/src/data/recipes.ts'));
   const output = resolve(root, 'dist/admin');
   await mkdir(resolve(output, 'catalog-images'), { recursive: true });
   await Promise.all([...images].map(([name,path]) => copyFile(path, resolve(output,'catalog-images',name))));
