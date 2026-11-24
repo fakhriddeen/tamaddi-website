@@ -33,3 +33,16 @@ await Promise.all(routes.map(async route => {
 
 // Copy CSS, JavaScript and images into the production output
 await cp(source('./public'), source('./dist'), { recursive: true });
+
+
+// Admin uses only the public Supabase URL and publishable key.
+const adminUrl = process.env.TAMADDI_ADMIN_SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const adminKey = process.env.TAMADDI_ADMIN_SUPABASE_PUBLISHABLE_KEY || process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
+if (adminKey && !adminKey.startsWith('sb_publishable_')) {
+  let role;
+  try { role = JSON.parse(Buffer.from(adminKey.split('.')[1], 'base64url').toString()).role; } catch {}
+  if (role !== 'anon') throw new Error('Admin configuration requires a public anon or publishable key.');
+}
+await mkdir(source('./dist/admin/'), { recursive: true });
+await writeFile(source('./dist/admin/config.js'),
+  'window.TAMADDI_ADMIN = ' + JSON.stringify({ url: adminUrl, key: adminKey }) + ';\n');
