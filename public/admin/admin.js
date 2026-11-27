@@ -52,6 +52,7 @@ $('#sign-in').onsubmit=async event=>{
   finally {button.disabled=false;}
 };
 $('#logout').onclick=async()=> {
+  if(window.mealEditorGuard&&!await window.mealEditorGuard())return;
   const {error}=await client.auth.signOut();
   if(error) return notice('Sign out failed. Please retry.',true);
   deny('');
@@ -61,7 +62,7 @@ $('#collapse').onclick=()=>{
   document.body.classList.toggle('compact');
   $('#collapse').setAttribute('aria-expanded',String(!document.body.classList.contains('compact')));
 };
-$('#refresh').onclick=()=>render();
+$('#refresh').onclick=async()=>{if(window.mealEditorGuard&&!await window.mealEditorGuard())return;render();};
 $('#close-viewer').onclick=()=>$('#viewer').close();
 $('#nav').innerHTML=sections.map((label,i)=>`<a href="#${i}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${['M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z','M3 4h18v13H8l-5 4z','M16 21v-3a4 4 0 0 0-8 0v3M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8','M5 3v7h5V3M7 10v11M18 3v18','M3 8l9-5 9 5v12H3z','M4 12h16M12 4v16','M4 20V8M12 20V3M20 20v-9','M5 4h14v17H5zM8 9h8M8 14h8','M4 7h16M4 17h16M8 4v6M16 14v6'][i]}"/></svg><span>${escapeHTML(label)}</span></a>`).join('');
 $('#nav a[href="#1"]').addEventListener('click',()=>{
@@ -71,11 +72,14 @@ function route() {
  const parts=location.hash.slice(1).split('/');
  return {section:Number(parts[0])||0,user:parts[1],ticket:parts[2]};
 }
-window.addEventListener('hashchange',()=>{page=0;render();});
+window.addEventListener('hashchange',async()=>{if(window.mealEditorGuard&&!await window.mealEditorGuard())return;page=0;render();});
 async function render(quiet=false) {
  if(!authorized)return;
  if(quiet && (document.activeElement?.closest('form') || document.querySelector('#meal-form')))return;
  const id=++generation, routeState=route();
+ window.AdminUI?.begin(id,quiet);
+ document.body.classList.toggle('meals-workspace',routeState.section===3);
+ document.querySelector('.page-description').textContent=['Keep track of users, support and activity across Tamaddi.','Manage customer requests and conversations.','Manage app users and review their activity.','Manage meals, ingredients and recipes in Tamaddi.','Explore ingredients and the meals that use them.','Monitor AI requests, usage and performance.','Understand growth and support trends.','Review administrative actions and important events.','Manage your account and workspace preferences.'][routeState.section]||'Tamaddi administration';
  $('#title').textContent=sections[routeState.section]||'Overview';
  $('#nav').querySelectorAll('a').forEach((a,i)=>{if(i===routeState.section)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
  $('#content').setAttribute('aria-busy','true');
@@ -92,7 +96,7 @@ async function render(quiet=false) {
   $('#content').dataset.section=String(routeState.section);
   if(!quiet)notice('Up to date');
  }catch(error){if(id===generation)notice(error.message,true);}
- finally {if(id===generation){$('#content').setAttribute('aria-busy','false');polishAdmin();}}
+ finally {if(id===generation){$('#content').setAttribute('aria-busy','false');polishAdmin();window.AdminUI?.end(id);}}
 }
 let overviewDays = 7;
 async function overview(data,id) {

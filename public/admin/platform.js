@@ -90,7 +90,7 @@ function outline(name) { return '<i data-lucide="'+name+'" aria-hidden="true"></
 function polishAdmin() {
  document.querySelector('#content').classList.remove('refined-page');
  delete document.querySelector('#content').dataset.refined;
- const names=['layout-dashboard','messages-square','user-round','utensils','package','sparkles','chart-no-axes-column','notebook-text','settings'];
+ const names=['layout-dashboard','messages-square','users-round','utensils','package','sparkles','chart-no-axes-combined','clipboard-list','settings'];
  document.querySelectorAll('#nav a').forEach((link,index)=>{
    const existing=link.querySelector('svg');
    if(existing&&!existing.classList.contains('lucide'))existing.outerHTML=outline(names[index]);
@@ -117,6 +117,8 @@ function polishAdmin() {
  }
  const welcome=document.querySelector('.welcome');
  if(welcome)welcome.remove();
+ const today=document.querySelector('#today');if(!today.querySelector('svg'))today.insertAdjacentHTML('afterbegin',outline('calendar-days'));
+ const logout=document.querySelector('#logout');if(!logout.querySelector('svg'))logout.insertAdjacentHTML('afterbegin',outline('log-out'));
  const notification=document.querySelector('.notification-access');
  notification.innerHTML=outline('bell');
  notification.title='Requests requiring attention';

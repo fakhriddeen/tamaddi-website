@@ -6,6 +6,7 @@ export interface Recipe {
   title: string;
   uzbekName: string;
   subtitle: string;
+  instructions?: string[];
   time: string;
   servings: string;
   /** Rough kcal estimate for one person; it is not nutrition-label data. */
@@ -14,7 +15,7 @@ export interface Recipe {
   ingredientBaseServings?: number;
   ingredientAmounts?: Record<string, { quantity: number | null; unit: string }>;
   difficulty: 'Easy' | 'Moderate' | 'Advanced';
-  image: number;
+  image: number | { uri: string };
   photoLayout?: 'cutout';
   youtubeUrl?: `https://${string}`;
   optionalIngredients?: string[];
@@ -37,7 +38,7 @@ const catalog: Recipe[] = [
     servings: '6–8 ppl',
     caloriesPerServing: 720,
     difficulty: 'Moderate',
-    image: require('../../assets/meals/plov.webp'),
+    image: require('../../assets/meals/refreshed/palov.png'), photoLayout: 'cutout',
     tags: ['Uzbek', 'Weekend', 'Traditional'],
     primaryTag: 'Uzbek Special',
     tagColor: '#86868B',
@@ -136,33 +137,29 @@ const catalog: Recipe[] = [
     servings: '4 ppl',
     caloriesPerServing: 610,
     difficulty: 'Easy',
-    image: require('../../assets/meals/shashlik.jpg'),
+    image: require('../../assets/meals/refreshed/shashlik.png'), photoLayout: 'cutout',
     tags: ['Uzbek', 'Grilled', 'Weekend'],
     primaryTag: 'Charcoal Grilled',
     tagColor: '#86868B',
     ingredientAmounts: { Oil: { quantity: 5, unit: 'ml' } },
     keyIngredients: ['Oil', 'Lamb Ribs', 'Beef Sirloin', 'Onion Marinade', 'Ground Coriander', 'Tail Fat (Dumba)'],
   },
-  { id: '7', title: 'Spaghetti', uzbekName: 'Italian classic', subtitle: 'Spaghetti with a rich beef and tomato sauce, finished with parmesan.', time: '25 min', servings: '2 ppl', caloriesPerServing: 660, difficulty: 'Easy', image: require('../../assets/meals/spaghetti.jpg'), tags: ['Italian', 'Quick'], primaryTag: 'Italian', tagColor: '#86868B', ingredientAmounts: { 'Olive Oil': { quantity: 10, unit: 'ml' } },
+  { id: '7', title: 'Spaghetti', uzbekName: 'Italian classic', subtitle: 'Spaghetti with a rich beef and tomato sauce, finished with parmesan.', time: '25 min', servings: '2 ppl', caloriesPerServing: 660, difficulty: 'Easy', image: require('../../assets/meals/refreshed/spaghetti.png'), photoLayout: 'cutout', tags: ['Italian', 'Quick'], primaryTag: 'Italian', tagColor: '#86868B', ingredientAmounts: { 'Olive Oil': { quantity: 10, unit: 'ml' } },
     keyIngredients: ['Olive Oil', 'Spaghetti', 'Minced Beef', 'Tomatoes', 'Onions', 'Garlic', 'Parmesan'] },
-  { id: '8', title: 'Pizza', uzbekName: 'Italian classic', subtitle: 'A crisp pizza base with tomatoes, mozzarella and basil.', time: '35 min', servings: '2 ppl', caloriesPerServing: 680, difficulty: 'Moderate', image: require('../../assets/meals/pizza.jpg'), tags: ['Italian', 'Weekend'], primaryTag: 'Italian', tagColor: '#86868B', ingredientAmounts: { 'Olive Oil': { quantity: 10, unit: 'ml' } }, keyIngredients: ['Pizza Dough', 'Tomato Sauce', 'Mozzarella', 'Fresh Basil', 'Olive Oil'] },
-  { id: '9', title: 'Pasta', uzbekName: 'Italian classic', subtitle: 'Penne with a creamy tomato sauce, parmesan and fresh herbs.', time: '20 min', servings: '2 ppl', caloriesPerServing: 620, difficulty: 'Easy', image: require('../../assets/meals/pasta.jpg'), tags: ['Italian', 'Quick'], primaryTag: 'Italian', tagColor: '#86868B', ingredientAmounts: { 'Olive Oil': { quantity: 10, unit: 'ml' } }, keyIngredients: ['Olive Oil', 'Penne Pasta', 'Tomatoes', 'Cream', 'Parmesan', 'Garlic'] },
+  { id: '8', title: 'Pizza', uzbekName: 'Italian classic', subtitle: 'A crisp pizza base with tomatoes, mozzarella and basil.', time: '35 min', servings: '2 ppl', caloriesPerServing: 680, difficulty: 'Moderate', image: require('../../assets/meals/refreshed/pizza.png'), photoLayout: 'cutout', tags: ['Italian', 'Weekend'], primaryTag: 'Italian', tagColor: '#86868B', ingredientAmounts: { 'Olive Oil': { quantity: 10, unit: 'ml' } }, keyIngredients: ['Pizza Dough', 'Tomato Sauce', 'Mozzarella', 'Fresh Basil', 'Olive Oil'] },
+  { id: '9', title: 'Pasta', uzbekName: 'Italian classic', subtitle: 'Penne with a creamy tomato sauce, parmesan and fresh herbs.', time: '20 min', servings: '2 ppl', caloriesPerServing: 620, difficulty: 'Easy', image: require('../../assets/meals/refreshed/pasta.png'), photoLayout: 'cutout', tags: ['Italian', 'Quick'], primaryTag: 'Italian', tagColor: '#86868B', ingredientAmounts: { 'Olive Oil': { quantity: 10, unit: 'ml' } }, keyIngredients: ['Olive Oil', 'Penne Pasta', 'Tomatoes', 'Cream', 'Parmesan', 'Garlic'] },
   ...NEW_RECIPES,
 ];
-
-function practicalServingAmount(quantity: number, unit: string) {
-  const step = unit === 'pcs' ? 0.01 : unit === 'g' && quantity >= 150 ? 50 : quantity >= 50 ? 5 : quantity >= 10 ? 1 : 0.01;
-  return Number(Math.max(step, Math.round(quantity / step) * step).toFixed(2));
-}
 
 export const RECIPES: Recipe[] = catalog.map((recipe) => {
   const standard = recipeStandards[recipe.id];
   return {
     ...recipe,
-    ingredientBaseServings: 1,
+    ingredientBaseServings: standard.servings,
+    servings: `${standard.servings} ppl`,
     keyIngredients: standard.ingredients.map(([name]) => name),
     ingredientAmounts: Object.fromEntries(standard.ingredients.map(([name, quantity, unit]) =>
-      [name, { quantity: quantity === null ? null : practicalServingAmount(quantity / standard.servings, unit), unit }])),
+      [name, { quantity: quantity === null ? null : quantity, unit }])),
     optionalIngredients: standard.ingredients.filter(([, , , optional]) => optional).map(([name]) => name),
     unverifiedIngredients: standard.ingredients.filter(([, quantity]) => quantity === null).map(([name]) => name),
     recipeSources: standard.sources,

@@ -137,7 +137,9 @@ export const recipeStandards: Record<string, Standard> = {
   borek: { servings: 3, sources: ['https://www.dizzlesky.co.uk/recipe/spinach-feta-filos/', 'https://history.fnal.gov/documents/NALWO_COOKBOOK.pdf'], ingredients: [
     ['Filo Pastry Sheets', 6, 'pcs'], ['Spinach', 200, 'g'], ['Feta', 200, 'g'], ['Eggs', 1, 'pcs'], ['Butter', 30, 'g'],
   ] },
-  kofte: { servings: 6, sources: ['https://fethiyetimes.com/cooking-with-ozlem-baked-turkish-mini-meatballs-kofte-in-pepper-and-tomato-sauce/'], ingredients: [
+  // The source's six mini-meatball portions are served as three main meals in Tamaddi.
+  // 450 g total meat / 3 = 150 g per person; ingredient ratios stay intact.
+  kofte: { servings: 3, sources: ['https://fethiyetimes.com/cooking-with-ozlem-baked-turkish-mini-meatballs-kofte-in-pepper-and-tomato-sauce/'], ingredients: [
     ['Minced Beef', 225, 'g'], ['Minced Lamb', 225, 'g'], ['Onions', 1, 'pcs'],
     ['Eggs', 2, 'pcs'], ['Olive Oil', 30, 'ml'],
   ] },
